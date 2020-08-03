@@ -30,7 +30,7 @@ CREATE TABLE department
             AUTO_INCREMENT,
 	first_name varchar
             (30) NOT NULL,
-        last_name varchar
+    last_name varchar
             (30) NOT NULL,
 	role_id int NOT NULL,
     manager_id int,

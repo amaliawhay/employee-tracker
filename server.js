@@ -5,15 +5,6 @@ interact with information stored in databases. Often these interfaces are known 
 **C**ontent **M**anagement **S**ystems. In this homework assignment, your challenge is to architect and 
 build a solution for managing a company's employees using node, inquirer, and MySQL.
 
-
-Build a command-line application that at a minimum allows the user to:
-
-  * Add departments, roles, employees
-
-  * View departments, roles, employees
-
-  * Update employee roles
-
 Bonus points if you're able to:
 
   * Update employee managers
@@ -102,3 +93,206 @@ var connection = mysql.createConnection({
   password: ")F*WGUsVpV",
   database: "top_songsDB",
 });
+
+connection.connect(function (err) {
+  if (err) throw err;
+  mainMenu();
+});
+
+//Portal to menu or quit
+function mainMenu() {
+  inquirer
+    .prompt({
+      name: "menu",
+      type: "confirm",
+      message: "Do you want to add, view or update data?",
+    })
+    .then(function (res) {
+      switch (res.repeat) {
+        case true:
+          initTracker();
+          break;
+        case false:
+          connection.end();
+          break;
+      }
+    });
+}
+
+//function for beginning inquirer prompts
+// Build a command-line application that at a minimum allows the user to:
+
+//   * Add departments, roles, employees
+
+//   * View departments, roles, employees
+
+//   * Update employee roles
+function initTracker() {
+  inquirer
+    .prompt({
+      name: "action",
+      type: "list",
+      message: "What would you like to do?",
+      choices: [
+        "Add a department",
+        "Add a role",
+        "Add an employee",
+        "View departments",
+        "View roles",
+        "View employees",
+        "Update employee roles",
+        "exit",
+      ],
+    })
+    .then(function (answer) {
+      switch (answer.action) {
+        case "Add a department":
+          addDept();
+          break;
+
+        case "Add a role":
+          addRole();
+          break;
+
+        case "Add an employee":
+          addEmp();
+          break;
+
+        case "View departments":
+          viewDept();
+          break;
+
+        case "View roles":
+          viewRole();
+          break;
+
+        case "View employees":
+          viewEmp();
+          break;
+
+        case "Update employee roles":
+          update();
+          break;
+      }
+    });
+}
+
+//To add a department
+function addDept() {
+  inquirer
+    .prompt({
+      name: "newDept",
+      type: "input",
+      message: "What is the department name?",
+    })
+    .then(function (res) {
+      var query = connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: res.newDept,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.log(
+            res.affectedRows + "department added"
+          );
+          mainMenu();
+        }
+      );
+      console.log(query.sql);
+    });
+}
+
+//To add a role
+function addRole() {
+  inquirer
+    .prompt([
+      {
+        name: "newRole",
+        type: "input",
+        message: "What is the name of this role?",
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "How much is the salary?",
+        // decimals?
+        // validate: function (value) {
+        //   if (isNaN(value) === false) {
+        //     return true;
+        //   }
+        //   return false;
+        // },
+      },
+      {
+        name: "deptID",
+        type: "input",
+        message: "What is the dept. ID number?",
+      },
+    ])
+    .then(function (res) {
+      console.log(res);
+      var query = connection.query(
+        "INSERT INTO role SET ?",
+        {
+          title: res.newRole,
+          salary: res.salary,
+          department_id: res.deptID,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.log(res.affectedRows + "Role added");
+          // Call updateProduct AFTER the INSERT completes
+          mainMenu();
+        }
+      );
+      console.log(query.sql);
+    });
+}
+
+//To add an employee
+function addEmp() {
+  inquirer
+    .prompt([
+      {
+        name: "firstName",
+        type: "input",
+        message: "What is the employee's first name?",
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is the employee's last name?",
+      },
+      {
+        name: "roleID",
+        type: "input",
+        message: "What is this employee's role ID number?",
+      },
+      {
+        name: "managerID",
+        type: "input",
+        message:
+          "What is this employee's manager's ID number?",
+      },
+    ])
+    .then(function (res) {
+      console.log(res);
+      var query = connection.query(
+        "INSERT INTO employee SET ?",
+        {
+          first_name: res.firstName,
+          last_name: res.lastName,
+          role_id: res.roleID,
+          manager_id: res.managerID,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.log(res.affectedRows + "Role added");
+          // Call updateProduct AFTER the INSERT completes
+          mainMenu();
+        }
+      );
+      console.log(query.sql);
+    });
+}

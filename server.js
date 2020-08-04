@@ -124,8 +124,6 @@ function mainMenu() {
 
 //   * Add departments, roles, employees
 
-//   * View departments, roles, employees
-
 //   * Update employee roles
 function initTracker() {
   inquirer
@@ -242,7 +240,6 @@ function addRole() {
         function (err, res) {
           if (err) throw err;
           console.log(res.affectedRows + "Role added");
-          // Call updateProduct AFTER the INSERT completes
           mainMenu();
         }
       );
@@ -289,7 +286,6 @@ function addEmp() {
         function (err, res) {
           if (err) throw err;
           console.log(res.affectedRows + "Role added");
-          // Call updateProduct AFTER the INSERT completes
           mainMenu();
         }
       );
@@ -297,10 +293,11 @@ function addEmp() {
     });
 }
 
+//   * View departments, roles, employees
 //To view departments
 function viewDept() {
   var query =
-    "SELECT role.title, role.department_id FROM role";
+    "SELECT department.name, department.id FROM department";
   connection.query(query, function (err, res) {
     if (err) throw err;
     console.table(res);

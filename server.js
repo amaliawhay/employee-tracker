@@ -296,3 +296,15 @@ function addEmp() {
       console.log(query.sql);
     });
 }
+
+//To view departments
+function viewDept() {
+  var query =
+    "SELECT role.title, role.department_id FROM role";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+
+    return res;
+  });
+}

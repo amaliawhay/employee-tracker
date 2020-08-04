@@ -305,3 +305,15 @@ function viewDept() {
     return res;
   });
 }
+
+//To view roles
+function viewRole() {
+  var query =
+    "SELECT role.title, role.salary, role.department_id FROM role";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+
+    return res;
+  });
+}

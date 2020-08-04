@@ -327,7 +327,7 @@ function update() {
             function (error) {
               if (error) throw err;
               console.log("updated successfully!");
-              again();
+              mainMenu();
             }
           );
         });

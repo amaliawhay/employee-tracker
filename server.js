@@ -1,86 +1,3 @@
-/*# Unit 12 MySQL Homework: Employee Tracker
-
-Developers are often tasked with creating interfaces that make it easy for non-developers to view and 
-interact with information stored in databases. Often these interfaces are known as 
-**C**ontent **M**anagement **S**ystems. In this homework assignment, your challenge is to architect and 
-build a solution for managing a company's employees using node, inquirer, and MySQL.
-
-Bonus points if you're able to:
-
-  * Update employee managers
-
-  * View employees by manager
-
-  * Delete departments, roles, and employees
-
-  * View the total utilized budget of a department -- ie the combined salaries of all employees in 
-  that department
-
-We can frame this challenge as follows:
-
-```
-As a business owner
-I want to be able to view and manage the departments, roles, and employees in my company
-So that I can organize and plan my business
-```
-
-How do you deliver this? Here are some guidelines:
-
-* Use the [MySQL](https://www.npmjs.com/package/mysql) NPM package to connect to your MySQL database and 
-perform queries.
-
-* Use [InquirerJs](https://www.npmjs.com/package/inquirer/v/0.2.3) NPM package to interact with the user
-via the command-line.
-
-* Use [console.table](https://www.npmjs.com/package/console.table) to print MySQL rows to the console. 
-There is a built-in version of `console.table`, but the NPM package formats the data a little better for 
-our purposes.
-
-* You may wish to have a separate file containing functions for performing specific SQL queries you'll 
-need to use. Could a constructor function or a class be helpful for organizing these?
-
-* You will need to perform a variety of SQL JOINS to complete this assignment, and it's recommended you 
-review the week's activities if you need a refresher on this.
-
-![Employee Tracker](Assets/employee-tracker.gif)
-
-### Hints
-
-* You may wish to include a `seed.sql` file to pre-populate your database. This will make development of 
-individual features much easier.
-
-* Focus on getting the basic functionality completed before working on more advanced features.
-
-* Review the week's activities for a refresher on MySQL.
-
-* Check out [SQL Bolt](https://sqlbolt.com/) for some extra MySQL help.
-
-## Minimum Requirements
-
-* Functional application.
-
-* GitHub repository with a unique name and a README describing the project.
-
-* The command-line application should allow users to:
-
-  * Add departments, roles, employees
-
-  * View departments, roles, employees
-
-  * Update employee roles
-
-## Bonus
-
-* The command-line application should allow users to:
-
-  * Update employee managers
-
-  * View employees by manager
-
-  * Delete departments, roles, and employees
-
-  * View the total utilized budget of a department -- ie the combined salaries of all employees in 
-  that department*/
 //Dependencies
 const mysql = require("mysql");
 const inquirer = require("inquirer");
@@ -91,7 +8,7 @@ var connection = mysql.createConnection({
   port: 3306,
   user: "root",
   password: ")F*WGUsVpV",
-  database: "top_songsDB",
+  database: "cms_db",
 });
 
 connection.connect(function (err) {
@@ -108,7 +25,7 @@ function mainMenu() {
       message: "Do you want to add, view or update data?",
     })
     .then(function (res) {
-      switch (res.repeat) {
+      switch (res.menu) {
         case true:
           initTracker();
           break;
@@ -120,11 +37,6 @@ function mainMenu() {
 }
 
 //function for beginning inquirer prompts
-// Build a command-line application that at a minimum allows the user to:
-
-//   * Add departments, roles, employees
-
-//   * Update employee roles
 function initTracker() {
   inquirer
     .prompt({
@@ -214,13 +126,14 @@ function addRole() {
         name: "salary",
         type: "input",
         message: "How much is the salary?",
-        // decimals?
-        // validate: function (value) {
-        //   if (isNaN(value) === false) {
-        //     return true;
-        //   }
-        //   return false;
-        // },
+        //validate to check for decimals/number input
+        validate: function (value) {
+          if (isNaN(parseFloat(value))) {
+            console.log("\n Please enter a decimal value.");
+            return false;
+          }
+          return true;
+        },
       },
       {
         name: "deptID",
@@ -234,7 +147,7 @@ function addRole() {
         "INSERT INTO role SET ?",
         {
           title: res.newRole,
-          salary: res.salary,
+          salary: parseFloat(res.salary).toFixed(2),
           department_id: res.deptID,
         },
         function (err, res) {
@@ -297,11 +210,11 @@ function addEmp() {
 //To view departments
 function viewDept() {
   var query =
-    "SELECT department.name, department.id FROM department";
+    "SELECT department.id, department.name FROM department";
   connection.query(query, function (err, res) {
     if (err) throw err;
     console.table(res);
-
+    mainMenu();
     return res;
   });
 }
@@ -309,11 +222,115 @@ function viewDept() {
 //To view roles
 function viewRole() {
   var query =
-    "SELECT role.title, role.salary, role.department_id FROM role";
+    "SELECT role.id, role.title, role.salary, role.department_id FROM role";
   connection.query(query, function (err, res) {
     if (err) throw err;
     console.table(res);
 
+    mainMenu();
     return res;
+  });
+}
+
+//To view employees
+function viewEmp() {
+  var query =
+    "SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, employee.manager_id FROM employee";
+  connection.query(query, function (err, res) {
+    if (err) throw err;
+    console.table(res);
+
+    mainMenu();
+    return res;
+  });
+}
+
+//   * Update employee roles
+//To update employee roles
+function update() {
+  var employeeQuery =
+    "SELECT employee.first_name, employee.last_name, employee.id FROM employee";
+  connection.query(employeeQuery, function (
+    err,
+    employeeRes
+  ) {
+    if (err) throw err;
+    var roleQuery =
+      "SELECT role.title, role.department_id FROM role";
+    connection.query(roleQuery, function (err, roleRes) {
+      if (err) throw err;
+
+      inquirer
+        .prompt([
+          {
+            name: "employeeId",
+            type: "rawlist",
+            message:
+              "What is the first and last name of the employee you would like to update?",
+            choices: function () {
+              var employeesArr = [];
+              for (var i = 0; i < employeeRes.length; i++) {
+                employeesArr.push(
+                  employeeRes[i].first_name +
+                    " " +
+                    employeeRes[i].last_name
+                );
+              }
+              return employeesArr;
+            },
+          },
+          {
+            name: "newRole",
+            type: "rawlist",
+            message: "What is this employee's new role?",
+            choices: function () {
+              var rolesArr = [];
+              for (var i = 0; i < roleRes.length; i++) {
+                rolesArr.push(roleRes[i].title);
+              }
+              return rolesArr;
+            },
+          },
+        ])
+        .then(function (answer) {
+          console.log(answer);
+
+          var chosenEmployee;
+          for (var i = 0; i < employeeRes.length; i++) {
+            if (
+              employeeRes[i].first_name +
+                " " +
+                employeeRes[i].last_name ===
+              answer.employeeId
+            ) {
+              chosenEmployee = employeeRes[i];
+              console.log(chosenEmployee.id);
+            }
+          }
+          // console.log(answer.newRole);
+          var chosenRole;
+          for (var i = 0; i < roleRes.length; i++) {
+            // console.log(roleRes[i]);
+            if (roleRes[i].title === answer.newRole) {
+              chosenRole = roleRes[i];
+              console.log(chosenRole.department_id);
+            }
+          }
+          connection.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+              { role_id: chosenRole.department_id },
+              {
+                id: chosenEmployee.id,
+              },
+            ],
+            function (error) {
+              if (error) throw err;
+              console.log("updated successfully!");
+              again();
+            }
+          );
+        });
+    });
   });
 }
